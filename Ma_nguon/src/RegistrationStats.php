@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+require_once __DIR__ . '/Database.php';
+function registrationStats(PgSql\Connection $connection, int $eventId): array
+{
+    $result = queryParams(
+        $connection,
+        'SELECT e.id, e.title, COUNT(r.id) AS total
+         FROM events e
+         LEFT JOIN registrations r ON r.event_id = e.id
+         WHERE e.id = $1
+         GROUP BY e.id, e.title',
+        [$eventId]
+    );
+    $row = pg_fetch_assoc($result);
+    if ($row === false) {
+        return [];
+    }
+    return [
+        'event_id' => (int)$row['id'],
+        'title' => (string)$row['title'],
+        'total' => (int)$row['total'],
+    ];
+}
