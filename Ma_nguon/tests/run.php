@@ -1,13 +1,13 @@
 <?php
 require __DIR__.'/helper.php';
-require __DIR__.'/../src/Input.php';
-require __DIR__.'/../src/EventFilter.php';
-$events = require __DIR__.'/../data/events.php';
-same(count(filterEvents($events,'')),3,'all');
-same(count(filterEvents($events,'php')),1,'keyword-ignore-case');
-same(count(filterEvents($events,'xyz')),0,'not-found');
-same(field(['name'=>['bad']], 'name'),'','array-input');
-same(e('<b>'),'&lt;b&gt;','escape-html');
-same(validateRegistration(['event_id'=>'1','name'=>"O'Neil",'email'=>'demo@example.test'],$events)['errors'],[],'valid-form');
-same(count(validateRegistration(['event_id'=>'999','name'=>'','email'=>'bad'],$events)['errors']),3,'invalid-form');
+require __DIR__.'/../src/Draft.php';
+$s = ['csrf'=>'keep'];
+saveDraft($s,['event_id'=>1,'name'=>'Demo'],1000);
+same($s['draft']['data']['event_id'],1,'saved');
+same(draftExpired($s,1299,300),false,'before-expiry');
+same(draftExpired($s,1300,300),true,'at-expiry');
+cancelDraft($s);
+same(isset($s['draft']),false,'cancelled');
+same($s['csrf'],'keep','unrelated-state-kept');
+same(draftExpired($s,1000,300),true,'no-draft');
 finish();

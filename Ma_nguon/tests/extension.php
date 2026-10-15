@@ -1,14 +1,12 @@
 <?php
 require __DIR__.'/helper.php';
-require __DIR__.'/../src/EventFilter.php';
-$events = require __DIR__.'/../data/events.php';
-function ids(array $items): array { return array_column($items, 'id'); }
-same(ids(filterEvents($events,'')),[1,2,3],'all');
-same(ids(filterEvents($events,'php')),[1],'keyword');
-same(ids(filterEvents($events,'','tech')),[1,3],'category');
-same(ids(filterEvents($events,'','',true)),[1,3],'available');
-same(ids(filterEvents($events,'Git','tech',true)),[3],'combined');
-same(ids(filterEvents($events,'','design',true)),[],'full-category');
-same(ids(filterEvents($events,'','unknown')),[],'unknown-category');
-same(count($events),3,'input-unchanged');
+require __DIR__.'/../src/DraftGuard.php';
+$s=['draft'=>['data'=>['event_id'=>1],'created_at'=>1000]];
+same(canComplete($s,1,1100,300),true,'valid');
+same(canComplete([],1,1100,300),false,'missing');
+same(canComplete($s,2,1100,300),false,'wrong-event');
+same(canComplete($s,1,1299,300),true,'before-expiry');
+same(canComplete($s,1,1300,300),false,'at-expiry');
+same(canComplete($s,1,999,300),false,'future-created-at');
+same(canComplete($s,1,1100,0),false,'invalid-ttl');
 finish();
